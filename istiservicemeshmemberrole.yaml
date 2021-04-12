@@ -1,0 +1,12 @@
+apiVersion: maistra.io/v1
+kind: ServiceMeshMemberRoll
+metadata:
+  namespace: istio-system
+  finalizers:
+    - maistra.io/istio-operator
+  labels:
+    app: open5gs
+spec:
+  members:
+    - open5gs
+    - another-of-your-projects

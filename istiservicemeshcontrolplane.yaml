@@ -1,0 +1,27 @@
+apiVersion: maistra.io/v2
+kind: ServiceMeshControlPlane
+metadata:
+  namespace: istio-system
+  name: basic
+  labels:
+    app: open5gs
+spec:
+  tracing:
+    sampling: 10000
+    type: None
+  policy:
+    type: Istiod
+  addons:
+    grafana:
+      enabled: false
+    jaeger:
+      install:
+        storage:
+          type: Memory
+    kiali:
+      enabled: true
+    prometheus:
+      enabled: true
+  version: v2.0
+  telemetry:
+    type: Istiod
