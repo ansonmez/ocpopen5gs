@@ -13,7 +13,8 @@ data:
         pfcp:
            dev: {{ .Values.k8s.interface }}
         gtpu:
-           dev: {{ .Values.k8s.interface }}
+           dev: net1
+           advertise: {{ .Values.k8s.advertise }}
         subnet:
           - addr: 10.45.0.1/16
             dnn: {{ .Values.dnn }}
