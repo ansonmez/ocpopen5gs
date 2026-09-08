@@ -7,8 +7,18 @@ metadata:
 data:
   nrf.yaml: |
     logger:
-        file: /var/log/open5gs/nrf.log
-
+      file:
+        path: /var/log/open5gs/nrf.log
+    global:
+      max:
+        ue: 1024
     nrf:
-        sbi:
-          addr: 0.0.0.0
+      serving:
+        - plmn_id:
+            mcc: {{ .Values.amf.mcc }}
+            mnc: {{ .Values.amf.mnc }}
+      sbi:
+        server:
+          - address: 0.0.0.0
+            port: 7777
+            advertise: open5gs-nrf

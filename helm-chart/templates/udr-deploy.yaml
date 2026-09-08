@@ -8,11 +8,12 @@ spec:
   selector:
     epc-mode: udr
   ports:
-    - protocol: TCP
-      port: 80   
-      targetPort: 80
----  
-apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+    - name: sbi
+      protocol: TCP
+      port: 7777
+      targetPort: 7777
+---
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: open5gs-udr-deployment
@@ -29,16 +30,19 @@ spec:
         sidecar.istio.io/inject: "true"
       labels:
         epc-mode: udr
-    spec:   
+    spec:
       containers:
         - name: udr
           image: "{{ .Values.open5gs.image.repository }}:{{ .Values.open5gs.image.tag }}"
           imagePullPolicy: {{ .Values.open5gs.image.pullPolicy }}
           command: ["open5gs-udrd", "-c", "/open5gs/config-map/udr.yaml"]
+          ports:
+            - name: sbi
+              containerPort: 7777
           volumeMounts:
           - name: open5gs-udr-config
             mountPath: /open5gs/config-map/udr.yaml
-            subPath: "udr.yaml"          
+            subPath: "udr.yaml"
       volumes:
         - name: open5gs-udr-config
           configMap:

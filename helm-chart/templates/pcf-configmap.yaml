@@ -6,15 +6,25 @@ metadata:
     epc-mode: pcf
 data:
   pcf.yaml: |
+    db_uri: mongodb://mongodb-svc/open5gs
     logger:
-        file: /var/log/open5gs/pcf.log
-    
-    db_uri: mongodb://mongodb-svc/open5gs    
-
+      file:
+        path: /var/log/open5gs/pcf.log
+    global:
+      max:
+        ue: 1024
     pcf:
-      sbi:     
-      - addr: 0.0.0.0
-        advertise: open5gs-pcf
-    nrf:
-     sbi:
-      name: open5gs-nrf 
+      sbi:
+        server:
+          - address: 0.0.0.0
+            port: 7777
+            advertise: open5gs-pcf
+        client:
+          nrf:
+            - uri: http://open5gs-nrf:7777
+      {{- if .Values.metrics.enabled }}
+      metrics:
+        server:
+          - address: 0.0.0.0
+            port: {{ .Values.metrics.port }}
+      {{- end }}

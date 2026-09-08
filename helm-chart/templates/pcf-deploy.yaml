@@ -4,15 +4,29 @@ metadata:
   name: open5gs-pcf
   labels:
     epc-mode: pcf
+    open5gs.io/metrics: {{ .Values.metrics.enabled | quote }}
+  {{- if .Values.metrics.enabled }}
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "{{ .Values.metrics.port }}"
+    prometheus.io/path: "/metrics"
+  {{- end }}
 spec:
   selector:
     epc-mode: pcf
   ports:
-    - protocol: TCP
-      port: 80 
-      targetPort: 80  
----  
-apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+    - name: sbi
+      protocol: TCP
+      port: 7777
+      targetPort: 7777
+    {{- if .Values.metrics.enabled }}
+    - name: metrics
+      protocol: TCP
+      port: {{ .Values.metrics.port }}
+      targetPort: {{ .Values.metrics.port }}
+    {{- end }}
+---
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: open5gs-pcf-deployment
@@ -25,19 +39,32 @@ spec:
       epc-mode: pcf
   template:
     metadata:
+      {{- if .Values.metrics.enabled }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .Values.metrics.port }}"
+        prometheus.io/path: "/metrics"
+      {{- end }}
       labels:
         epc-mode: pcf
-    spec:    
+    spec:
       containers:
         - name: pcf
           image: "{{ .Values.open5gs.image.repository }}:{{ .Values.open5gs.image.tag }}"
           imagePullPolicy: {{ .Values.open5gs.image.pullPolicy }}
           command: ["open5gs-pcfd", "-c", "/open5gs/config-map/pcf.yaml"]
+          ports:
+            - name: sbi
+              containerPort: 7777
+            {{- if .Values.metrics.enabled }}
+            - name: metrics
+              containerPort: {{ .Values.metrics.port }}
+            {{- end }}
           volumeMounts:
           - name: open5gs-pcf-config
             mountPath: /open5gs/config-map/pcf.yaml
-            subPath: "pcf.yaml"          
+            subPath: "pcf.yaml"
       volumes:
         - name: open5gs-pcf-config
           configMap:
-            name: open5gs-pcf-config         
+            name: open5gs-pcf-config

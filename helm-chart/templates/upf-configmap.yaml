@@ -7,14 +7,26 @@ metadata:
 data:
   upf.yaml: |
     logger:
-        file: /var/log/open5gs/upf.log
-
+      file:
+        path: /var/log/open5gs/upf.log
+    global:
+      max:
+        ue: 1024
     upf:
-        pfcp:
-           dev: {{ .Values.k8s.interface }}
-        gtpu:
-           dev: net1
-           advertise: {{ .Values.k8s.advertise }}
-        subnet:
-          - addr: 10.45.0.1/16
-            dnn: {{ .Values.dnn }}
+      pfcp:
+        server:
+          - dev: {{ .Values.k8s.interface }}
+      gtpu:
+        server:
+          - dev: net1
+            advertise: {{ .Values.k8s.advertise }}
+      session:
+        - subnet: 10.45.0.0/16
+          gateway: 10.45.0.1
+          dnn: {{ .Values.dnn }}
+      {{- if .Values.metrics.enabled }}
+      metrics:
+        server:
+          - address: 0.0.0.0
+            port: {{ .Values.metrics.port }}
+      {{- end }}

@@ -1,0 +1,25 @@
+{{- if .Values.bsf.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: open5gs-bsf-config
+  labels:
+    epc-mode: bsf
+data:
+  bsf.yaml: |
+    logger:
+      file:
+        path: /var/log/open5gs/bsf.log
+    global:
+      max:
+        ue: 1024
+    bsf:
+      sbi:
+        server:
+          - address: 0.0.0.0
+            port: 7777
+            advertise: open5gs-bsf
+        client:
+          nrf:
+            - uri: http://open5gs-nrf:7777
+{{- end }}

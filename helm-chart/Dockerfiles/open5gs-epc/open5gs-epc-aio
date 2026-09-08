@@ -1,15 +1,37 @@
-FROM ubuntu:focal
+FROM ubuntu:22.04
 
-MAINTAINER Christopher Adigun <adigunca@amazon.com>
+LABEL maintainer="asonmez"
+LABEL org.opencontainers.image.title="open5gs-aio"
+LABEL org.opencontainers.image.version="v2.8.0"
+LABEL org.opencontainers.image.description="Open5GS all-in-one image with Prometheus metrics (default in v2.8.0)"
 
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
+ENV OPEN5GS_VERSION=v2.8.0
 
+# Prometheus metrics are compiled by default in Open5GS >= 2.6.1 (meson option metrics_impl was removed).
 RUN apt-get update && \
-   apt-get -yq dist-upgrade && \
-   apt-get --no-install-recommends -qqy install python3-pip python3-setuptools python3-wheel ninja-build build-essential flex bison git libsctp-dev libgnutls28-dev libgcrypt-dev libssl-dev \
-   libidn11-dev libmongoc-dev libbson-dev libyaml-dev libmicrohttpd-dev libcurl4-gnutls-dev meson iproute2 libnghttp2-dev \
-   iptables iputils-ping tcpdump cmake curl gnupg meson && \ 
-   git clone --recursive -b v2.2.2 https://github.com/open5gs/open5gs && \
-   cd open5gs && meson build --prefix=/ && ninja -C build && cd build && ninja install
+    apt-get -yq dist-upgrade && \
+    apt-get install -y --no-install-recommends \
+      python3-pip python3-setuptools python3-wheel ninja-build build-essential \
+      flex bison git cmake pkg-config ca-certificates \
+      libsctp-dev libc-ares-dev libgnutls28-dev libgcrypt-dev libssl-dev \
+      libmongoc-dev libbson-dev libyaml-dev libnghttp2-dev libmicrohttpd-dev \
+      libcurl4-gnutls-dev libtins-dev libtalloc-dev meson \
+      iproute2 iptables iputils-ping tcpdump curl gnupg && \
+    if apt-cache show libidn-dev >/dev/null 2>&1; then \
+      apt-get install -y --no-install-recommends libidn-dev; \
+    else \
+      apt-get install -y --no-install-recommends libidn11-dev; \
+    fi && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+RUN git clone --recursive -b ${OPEN5GS_VERSION} https://github.com/open5gs/open5gs.git /open5gs
+
+WORKDIR /open5gs
+
+RUN meson build --prefix=/ && \
+    ninja -C build && \
+    ninja -C build install && \
+    mkdir -p /var/log/open5gs /etc/open5gs
 
 WORKDIR /

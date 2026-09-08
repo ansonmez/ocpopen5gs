@@ -1,0 +1,51 @@
+{{- if .Values.bsf.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: open5gs-bsf
+  labels:
+    epc-mode: bsf
+spec:
+  selector:
+    epc-mode: bsf
+  ports:
+    - name: sbi
+      protocol: TCP
+      port: 7777
+      targetPort: 7777
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: open5gs-bsf-deployment
+  labels:
+    epc-mode: bsf
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      epc-mode: bsf
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "true"
+      labels:
+        epc-mode: bsf
+    spec:
+      containers:
+        - name: bsf
+          image: "{{ .Values.open5gs.image.repository }}:{{ .Values.open5gs.image.tag }}"
+          imagePullPolicy: {{ .Values.open5gs.image.pullPolicy }}
+          command: ["open5gs-bsfd", "-c", "/open5gs/config-map/bsf.yaml"]
+          ports:
+            - name: sbi
+              containerPort: 7777
+          volumeMounts:
+          - name: open5gs-bsf-config
+            mountPath: /open5gs/config-map/bsf.yaml
+            subPath: "bsf.yaml"
+      volumes:
+        - name: open5gs-bsf-config
+          configMap:
+            name: open5gs-bsf-config
+{{- end }}

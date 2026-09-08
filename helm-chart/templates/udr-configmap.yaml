@@ -6,14 +6,19 @@ metadata:
     epc-mode: udr
 data:
   udr.yaml: |
-    logger:
-        file: /var/log/open5gs/udr.log
-
     db_uri: mongodb://mongodb-svc/open5gs
+    logger:
+      file:
+        path: /var/log/open5gs/udr.log
+    global:
+      max:
+        ue: 1024
     udr:
       sbi:
-      - addr: 0.0.0.0
-        advertise: open5gs-udr
-    nrf:
-     sbi:
-      name: open5gs-nrf  
+        server:
+          - address: 0.0.0.0
+            port: 7777
+            advertise: open5gs-udr
+        client:
+          nrf:
+            - uri: http://open5gs-nrf:7777

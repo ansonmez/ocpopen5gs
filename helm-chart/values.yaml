@@ -1,45 +1,41 @@
-# Default values for open5gs-epc-helm.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
+# Default values for open5gs-5gcore-helm (Open5GS v2.8.0)
 
 open5gs:
   image:
-    repository: registry.gitlab.com/infinitydon/registry/open5gs-aio
+    repository: quay.io/asonmez/open5gs-aio
     pullPolicy: IfNotPresent
-    tag: "v2.2.2"
+    tag: "v2.8.0"
 
 webui:
   image:
-    repository: registry.gitlab.com/infinitydon/registry/open5gs-webui
+    repository: quay.io/asonmez/open5gs-aio
     pullPolicy: IfNotPresent
-    tag: "v2.2.2"
+    tag: "webui-v2.8.0"
   ingress:
     enabled: false
-    ## Ingress annotations done as key:value pairs
-    ## For a full list of possible ingress annotations, please see
-    ## ref: https://github.com/kubernetes/ingress-nginx/blob/master/docs/user-guide/nginx-configuration/annotations.md
-    ##
-    ## If tls is set to true, annotation ingress.kubernetes.io/secure-backends: "true" will automatically be set
-    # annotations:
-    #   kubernetes.io/ingress.class: nginx
-
     hosts:
       - name: open5gs-epc.local
         paths: ["/"]
-        ## Set this to true in order to enable TLS on the ingress record
         tls: false
 
-        ## Optionally specify the TLS hosts for the ingress record
-        ## Useful when the Ingress controller supports www-redirection
-        ## If not specified, the above host name will be used
-        # tlsHosts:
-        # - www.open5gs-epc.local
-        # - open5gs-epc.local
+mongodb:
+  image:
+    repository: mongo
+    tag: "6.0"
+    pullPolicy: IfNotPresent
 
-        ## If TLS is set to true, you can declare what secret will store the key/certificate for TLS
-        # tlsSecret: open5gs-epc.local-tls    
+# Prometheus metrics served by AMF/SMF/PCF/UPF at /metrics
+metrics:
+  enabled: true
+  port: 9090
+  serviceMonitor:
+    enabled: true
+    interval: 15s
 
-dnn: internet  
+bsf:
+  enabled: true
+
+dnn: internet
 
 amf:
   mcc: 208
@@ -48,5 +44,7 @@ amf:
 
 # Primary/Native kubernetes interface
 k8s:
- interface: eth0
- advertise: 192.168.50.200
+  interface: eth0
+  advertise: 192.168.50.200
+
+netattchdefinition: testuserplane

@@ -8,14 +8,15 @@ spec:
   selector:
     epc-mode: nssf
   ports:
-    - protocol: TCP
-      port: 80 
-      targetPort: 80  
----  
-apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+    - name: sbi
+      protocol: TCP
+      port: 7777
+      targetPort: 7777
+---
+apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: open5gs-nssf-deployment  
+  name: open5gs-nssf-deployment
   labels:
     epc-mode: nssf
 spec:
@@ -29,17 +30,20 @@ spec:
         sidecar.istio.io/inject: "true"
       labels:
         epc-mode: nssf
-    spec:   
+    spec:
       containers:
         - name: nssf
           image: "{{ .Values.open5gs.image.repository }}:{{ .Values.open5gs.image.tag }}"
           imagePullPolicy: {{ .Values.open5gs.image.pullPolicy }}
           command: ["open5gs-nssfd", "-c", "/open5gs/config-map/nssf.yaml"]
+          ports:
+            - name: sbi
+              containerPort: 7777
           volumeMounts:
           - name: open5gs-nssf-config
             mountPath: /open5gs/config-map/nssf.yaml
-            subPath: "nssf.yaml"          
+            subPath: "nssf.yaml"
       volumes:
         - name: open5gs-nssf-config
           configMap:
-            name: open5gs-nssf-config           
+            name: open5gs-nssf-config

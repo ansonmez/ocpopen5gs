@@ -7,34 +7,44 @@ metadata:
 data:
   smf.yaml: |
     logger:
-        file: /var/log/open5gs/smf.log
-
-    parameter:
-        no_ipv6: true
-
+      file:
+        path: /var/log/open5gs/smf.log
+    global:
+      max:
+        ue: 1024
     smf:
-        sbi:     
-        - addr: 0.0.0.0
-          advertise: open5gs-smf
-        pfcp:
-           dev: {{ .Values.k8s.interface }}
-        gtpc:
-          dev: {{ .Values.k8s.interface }}
-        gtpu:
-          dev: {{ .Values.k8s.interface }}    
-        subnet:
-         - addr: 10.45.0.1/16
-           dnn: {{ .Values.dnn }}
-        dns:
-          - 8.8.8.8
-          - 8.8.4.4
-        mtu: 1400
-
-    nrf:
-     sbi:
-      name: open5gs-nrf 
-
-    upf:
+      sbi:
+        server:
+          - address: 0.0.0.0
+            port: 7777
+            advertise: open5gs-smf
+        client:
+          nrf:
+            - uri: http://open5gs-nrf:7777
       pfcp:
-        - name: upf-open5gs
+        server:
+          - dev: {{ .Values.k8s.interface }}
+        client:
+          upf:
+            - address: upf-open5gs
+              dnn: {{ .Values.dnn }}
+      gtpc:
+        server:
+          - dev: {{ .Values.k8s.interface }}
+      gtpu:
+        server:
+          - dev: {{ .Values.k8s.interface }}
+      {{- if .Values.metrics.enabled }}
+      metrics:
+        server:
+          - address: 0.0.0.0
+            port: {{ .Values.metrics.port }}
+      {{- end }}
+      session:
+        - subnet: 10.45.0.0/16
+          gateway: 10.45.0.1
           dnn: {{ .Values.dnn }}
+      dns:
+        - 8.8.8.8
+        - 8.8.4.4
+      mtu: 1400
