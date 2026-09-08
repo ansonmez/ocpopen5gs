@@ -1,3 +1,7 @@
+# Example NAD shipped with the Helm chart (namespace open5gs, 192.168.50.200).
+# ocpair03 GitOps NADs live in github.com/ansonmez/telcollamastack
+# kubernetes/ueransim/{testuserplane,gnb-userplane,ue-userplane}-nad.yaml
+# (192.168.135.200 / .201 / .250-254, Recreate on single-IP attachments).
 apiVersion: k8s.cni.cncf.io/v1
 kind: NetworkAttachmentDefinition
 metadata:
