@@ -18,11 +18,22 @@ webui:
         paths: ["/"]
         tls: false
 
+# MongoDB: default emptyDir at /data/db. Set persistence.enabled=true to create
+# PVC open5gs-mongodb-data, or set existingClaim. See README persistence examples.
 mongodb:
   image:
     repository: mongo
     tag: "6.0"
     pullPolicy: IfNotPresent
+  persistence:
+    enabled: false
+    existingClaim: ""
+    storageClass: ""
+    size: 8Gi
+    accessModes:
+      - ReadWriteOnce
+    volumeName: ""
+    mountPath: /data/db
 
 # Prometheus metrics served by AMF/SMF/PCF/UPF at /metrics
 metrics:

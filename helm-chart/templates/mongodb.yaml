@@ -1,3 +1,30 @@
+{{- $p := .Values.mongodb.persistence | default dict -}}
+{{- $enabled := default false $p.enabled -}}
+{{- $existing := default "" $p.existingClaim -}}
+{{- $mount := default "/data/db" $p.mountPath -}}
+{{- if and $enabled (not $existing) }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: open5gs-mongodb-data
+  labels:
+    app: open5gs-mongodb
+spec:
+  accessModes:
+{{- range (default (list "ReadWriteOnce") $p.accessModes) }}
+  - {{ . }}
+{{- end }}
+  resources:
+    requests:
+      storage: {{ default "8Gi" $p.size }}
+{{- if $p.storageClass }}
+  storageClassName: {{ $p.storageClass }}
+{{- end }}
+{{- if $p.volumeName }}
+  volumeName: {{ $p.volumeName }}
+{{- end }}
+---
+{{- end }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -16,6 +43,10 @@ spec:
   selector:
     matchLabels:
       app: open5gs-mongodb
+{{- if $enabled }}
+  strategy:
+    type: Recreate
+{{- end }}
   template:
     metadata:
       labels:
@@ -28,3 +59,14 @@ spec:
         ports:
         - containerPort: 27017
           name: mongodb
+        volumeMounts:
+        - name: mongo-data
+          mountPath: {{ $mount }}
+      volumes:
+      - name: mongo-data
+{{- if $enabled }}
+        persistentVolumeClaim:
+          claimName: {{ if $existing }}{{ $existing }}{{ else }}open5gs-mongodb-data{{ end }}
+{{- else }}
+        emptyDir: {}
+{{- end }}
